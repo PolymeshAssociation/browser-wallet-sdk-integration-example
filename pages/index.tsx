@@ -85,14 +85,24 @@ const Home: NextPage = () => {
     console.log(`\nConnecting to Polymesh ${network.name} at ${network.wssUrl}.\n`);
 
     const connect = async () => {
-      polymeshSdk = await Polymesh.connect({
-        nodeUrl: network.wssUrl,
-        signingManager,
-      });
-      const chainName = (await polymeshSdk._polkadotApi.rpc.system.chain()).toString();
-      if (effectMounted) {
-        setSdk(polymeshSdk);
-        setChain(chainName);
+      try {
+        polymeshSdk = await Polymesh.connect({
+          nodeUrl: network.wssUrl,
+          signingManager,
+        });
+        const chainName = (await polymeshSdk._polkadotApi.rpc.system.chain()).toString();
+        if (effectMounted) {
+          setSdk(polymeshSdk);
+          setChain(chainName);
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          error.message === 'Unsupported Polymesh RPC node version. Please upgrade the SDK'
+            ? toast.error('The chain runtime or RPC node version is not supported.', { autoClose: false, theme: 'colored' })
+            : toast.error(error.message, { autoClose: false, theme: 'colored' });
+        } else {
+          throw error;
+        }
       }
     };
     connect();
