@@ -13,6 +13,7 @@ const Home: NextPage = () => {
   const [sdk, setSdk] = useState<Polymesh>();
   const [chain, setChain] = useState<string>();
   const [accounts, setAccounts] = useState<string[]>();
+  const [walletError, setWalletError] = useState<string>();
 
   // Define reference for tracking component mounted state.
   const mountedRef = useRef(false);
@@ -28,14 +29,21 @@ const Home: NextPage = () => {
   useEffect(() => {
     const createSigningManager = async () => {
       const { BrowserExtensionSigningManager } = await import('@polymeshassociation/browser-extension-signing-manager');
+      try {
+        const browserSigningManager = await BrowserExtensionSigningManager.create({
+          appName: 'polymesh-example-wallet-sdk-integration', //Name of dApp used when wallet prompts to authorize connection.
+          extensionName: 'polywallet', // 'polywallet' is the default if omitted.
+        });
 
-      const browserSigningManager = await BrowserExtensionSigningManager.create({
-        appName: 'polymesh-example-wallet-sdk-integration', //Name of dApp used when wallet prompts to authorize connection.
-        extensionName: 'polywallet', // 'polywallet' is the default if omitted.
-      });
-
-      if (mountedRef.current) {
-        setSigningManager(browserSigningManager);
+        if (mountedRef.current) {
+          setSigningManager(browserSigningManager);
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          setWalletError(error.message);
+        } else {
+          throw error;
+        }
       }
     };
     createSigningManager();
@@ -139,13 +147,19 @@ const Home: NextPage = () => {
         </>
       ) : (
         <>
-          {signingManager ? ' ✓ Signing Manager Created' : '• Awaiting Signing Manager'}
-          <br />
-          {network ? ` ✓ Node URL: ${network.wssUrl}` : '• Awaiting Node Url'}
-          <br />
-          {network ? `• Connecting to ${network.name} @ ${network.wssUrl}` : '• Awaiting Network'}
-          <br />
-          <Spinner />
+          {walletError ? (
+            walletError
+          ) : (
+            <>
+              {signingManager ? ' ✓ Signing Manager Created' : '• Awaiting Signing Manager'}
+              <br />
+              {network ? ` ✓ Node URL: ${network.wssUrl}` : '• Awaiting Node Url'}
+              <br />
+              {network ? `• Connecting to ${network.name} @ ${network.wssUrl}` : '• Awaiting Network'}
+              <br />
+              <Spinner />
+            </>
+          )}
         </>
       )}
     </div>
