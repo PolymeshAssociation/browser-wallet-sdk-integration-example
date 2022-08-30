@@ -153,7 +153,7 @@ export default function TransferPolyx({ accounts, sdk, network }: TransferProps)
       <div className='Card'>
         <h1> Send POLYX</h1>
         <label htmlFor='from'>Select sending address: </label>
-        <select value={selectedAccount} name='from' id='from' required onChange={handleAccountChange}>
+        <select style={{ appearance: 'none', width: '430px' }} value={selectedAccount} name='from' id='from' required onChange={handleAccountChange}>
           <option value='' disabled hidden>
             Select an Address
           </option>
@@ -173,7 +173,7 @@ export default function TransferPolyx({ accounts, sdk, network }: TransferProps)
           id='to'
           list='accounts'
           maxLength={48}
-          size={55}
+          style={{ width: '430px', appearance: 'none' }}
           onChange={handleRecipientChange}
         />
         <datalist id='accounts'>

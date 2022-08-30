@@ -25,8 +25,6 @@ export const useUpdateNotification = (
   }, [network]);
 
   useEffect(() => {
-    console.log(transactionStatus);
-
     if (!transactionStatus || !transactionDetails || !toastId) return;
 
     switch (transactionStatus) {
