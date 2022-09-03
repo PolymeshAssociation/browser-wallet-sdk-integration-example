@@ -47,6 +47,7 @@ h1 {
   position: relative;
   padding: 10px 20px;
   border-radius: 20px;
+  min-width: fit-content;
 }
 
 .App-header {
