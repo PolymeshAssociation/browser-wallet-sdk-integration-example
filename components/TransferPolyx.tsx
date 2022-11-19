@@ -1,6 +1,6 @@
 import { BigNumber, Polymesh } from '@polymeshassociation/polymesh-sdk';
 import { PolymeshError, PolymeshTransactionBase } from '@polymeshassociation/polymesh-sdk/internal';
-import { TransactionQueue, TransactionStatus, UnsubCallback } from '@polymeshassociation/polymesh-sdk/types';
+import { GenericPolymeshTransaction, TransactionStatus, UnsubCallback } from '@polymeshassociation/polymesh-sdk/types';
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { toast, Id } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -18,7 +18,7 @@ export default function TransferPolyx({ accounts, sdk, network }: TransferProps)
   const [availableBalance, setAvailableBalance] = useState<string>();
   const [inputValue, setInputValue] = useState('');
   const [memo, setMemo] = useState<string>('');
-  const [transferQ, setTransferQ] = useState<TransactionQueue>();
+  const [transferTx, setTransferTx] = useState<GenericPolymeshTransaction<void, void>>();
   const [transactionInProcess, setTransactionInProcess] = useState<boolean>(false);
   const [transactionDetails, setTransactionDetails] = useState<PolymeshTransactionBase>();
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>();
@@ -95,12 +95,12 @@ export default function TransferPolyx({ accounts, sdk, network }: TransferProps)
       return;
     }
     try {
-      const transferPolyxQ = await sdk.network.transferPolyx({
+      const transferPolyxTx = await sdk.network.transferPolyx({
         amount: new BigNumber(inputValue),
         to: destinationAccount,
         memo: memo,
       });
-      if (mountedRef.current) setTransferQ(transferPolyxQ);
+      if (mountedRef.current) setTransferTx(transferPolyxTx);
     } catch (error) {
       if (error instanceof PolymeshError) {
         showToastError(error);
@@ -111,10 +111,10 @@ export default function TransferPolyx({ accounts, sdk, network }: TransferProps)
   };
 
   useEffect(() => {
-    if (!transferQ) return;
+    if (!transferTx) return;
     if (mountedRef.current) setTransactionInProcess(true);
 
-    const unsubTQ = transferQ.onTransactionStatusChange((transaction) => {
+    const unsubTQ = transferTx.onStatusChange((transaction) => {
       if (transaction.status === 'Unapproved') {
         const id = toast.loading('Please sign transaction in wallet.', { autoClose: false, theme: 'light' });
         if (mountedRef.current) setTransferToastId(id);
@@ -127,7 +127,7 @@ export default function TransferPolyx({ accounts, sdk, network }: TransferProps)
 
     const handleTransfer = async () => {
       try {
-        await transferQ.run();
+        await transferTx.run();
       } catch (error) {
         if (error instanceof PolymeshError) {
           showToastError(error);
@@ -137,7 +137,7 @@ export default function TransferPolyx({ accounts, sdk, network }: TransferProps)
       } finally {
         if (mountedRef.current) {
           setTransactionInProcess(false);
-          setTransferQ(undefined);
+          setTransferTx(undefined);
         }
       }
     };
@@ -146,7 +146,7 @@ export default function TransferPolyx({ accounts, sdk, network }: TransferProps)
     return () => {
       unsubTQ && unsubTQ();
     };
-  }, [transferQ]);
+  }, [transferTx]);
 
   return (
     <>
