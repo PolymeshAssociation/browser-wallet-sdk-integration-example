@@ -131,14 +131,14 @@ const Home: NextPage = () => {
 
     const unsubAccounts = signingManager.onAccountChange((allAccounts) => {
       const setSelectedAccountToSigner = async () => {
-        await sdk.setSigningAccount(allAccounts[0]);
+        await sdk.setSigningAccount(allAccounts[0] as string);
       };
 
       if (effectMounted) {
-        setAccounts(allAccounts);
+        setAccounts(allAccounts as string[]);
         setSelectedAccountToSigner();
       }
-    });
+    }, false);
 
     return () => {
       unsubAccounts && unsubAccounts();
